@@ -15,4 +15,8 @@ class AppSettings(object):
     def base_url(self):
         return self.__config.get('urls', 'base_url')
     
+    @property
+    def url_place_details(self):
+        return self.__config.get('urls', 'url_places_detail')
+    
     
