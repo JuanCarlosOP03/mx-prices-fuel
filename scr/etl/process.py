@@ -4,8 +4,6 @@ import shutil
 from config.conf import AppSettings
 from scr.utils.extractor import data_extractor
 from pyspark.sql import SparkSession, Row, types as ps_types, functions as ps_func
-from pyspark.sql.functions import col
-from pyspark.sql.functions import explode, col, when
 from pyspark.sql.types import FloatType, IntegerType
 import pdfplumber
 import logging
@@ -32,15 +30,15 @@ def process_prices():
             .load(file_prices)
             
         Logger.info('exploding the gas_price column')
-        df = df.withColumn("gas_price", explode("gas_price"))
+        df = df.withColumn("gas_price", ps_func.explode("gas_price"))
 
         Logger.info('selecting and casting columns of prices table')
         df = df.select(
-            col("_place_id").cast(IntegerType()).alias("place_id"),
-            col("gas_price._VALUE").cast(FloatType()).alias("price"),
-            col("gas_price._type").alias("type_product")
+            ps_func.col("_place_id").cast(IntegerType()).alias("place_id"),
+            ps_func.col("gas_price._VALUE").cast(FloatType()).alias("price"),
+            ps_func.col("gas_price._type").alias("type_product")
         )
-        df = df.withColumn("fuel_type", when(df.type_product == 'diesel', 'diesel').otherwise('gasolina'))
+        df = df.withColumn("fuel_type", ps_func.when(df.type_product == 'diesel', 'diesel').otherwise('gasolina'))
 
 
         path_name = os.path.join(settings.project_path, 'data/trans', 'prices.parquet')
@@ -83,11 +81,11 @@ def process_places():
 
         Logger.info('selecting and casting columns of prices table')
         df = df.select(
-            col("_place_id").cast(IntegerType()).alias("place_id"),
-            col("cre_id"),
-            col("location.x").cast(FloatType()).alias("longitude"),
-            col("location.y").cast(FloatType()).alias("latitude"),
-            col("name").alias("place_name")
+            ps_func.col("_place_id").cast(IntegerType()).alias("place_id"),
+            ps_func.col("cre_id"),
+            ps_func.col("location.x").cast(FloatType()).alias("longitude"),
+            ps_func.col("location.y").cast(FloatType()).alias("latitude"),
+            ps_func.col("name").alias("place_name")
         )
 
         path_name = os.path.join(settings.project_path, 'data/trans', 'places.parquet')
